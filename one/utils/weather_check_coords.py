@@ -7,7 +7,6 @@ from ..constants import FilePath
 __all__ = ["check_weather_data"]
 
 
-
 def check_weather_data(coords_result=None):
     file_path = FilePath.FILE_PATH
     if os.path.exists(file_path):

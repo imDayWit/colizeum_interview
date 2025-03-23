@@ -1,5 +1,6 @@
 import asyncio
-from .utils import fetch_weather_data, save_news, save_user_data, init_excel_file
+
+from .utils import fetch_weather_data, init_excel_file, save_news, save_user_data
 
 
 async def main():

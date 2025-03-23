@@ -1,3 +1,4 @@
+from .file_init import *
 from .news_save import *
 from .newsapi import *
 from .openweathermap import *
@@ -7,4 +8,3 @@ from .users_save import *
 from .weather_check_coords import *
 from .weather_get_all_coords import *
 from .weather_save import *
-from .file_init import init_excel_file

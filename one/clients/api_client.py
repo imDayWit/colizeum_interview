@@ -1,3 +1,4 @@
+import aiohttp
 from aiohttp import ClientSession
 
 __all__ = ["APIClient"]
@@ -14,7 +15,13 @@ class APIClient:
     async def __aexit__(self, exc_type, exc_val, exc_tb):
         await self.session.close()
 
-    # todo handle errors
     async def fetch(self, url: str, params: dict = None):
-        async with self.session.get(url, params=params) as response:
-            return await response.json()
+        try:
+            async with self.session.get(url, params=params) as response:
+                if response.status != 200:
+                    raise Exception(
+                        f"Something went wrong while fetching data, details:\nStatus Code: {response.status}\nBody: {await response.text()}"
+                    )
+                return await response.json()
+        except aiohttp.ClientError as e:
+            raise Exception(e)

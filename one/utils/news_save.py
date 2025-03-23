@@ -1,7 +1,7 @@
 import pandas as pd
 
-from ..utils.save_to_sheet import save_to_sheet
 from ..constants import FilePath
+from ..utils.save_to_sheet import save_to_sheet
 
 __all__ = ["save_news"]
 

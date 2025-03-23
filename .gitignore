@@ -149,6 +149,7 @@ vanv.bak
 *.env
 
 *.xlsx
+*.csv
 
 # Spyder project settings
 .spyderproject

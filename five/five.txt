@@ -1,0 +1,120 @@
+Вопрос:
+Необходимо описать полный процесс деплоя приложения на Kubernetes вместе с
+ingress, включая докер файл, Kubernetes-манифесты и команды, которые
+используются в процессе деплоя.
+
+Ответ:
+1. Собираем DockerFile, например:
+
+FROM python:3.11-slim
+WORKDIR /app
+COPY . /app
+RUN pip install flask
+CMD ["python", "app.py"]
+
+2. Написание helm манифеста(если есть), пример:
+
+deployment:
+  replicaCount: 1
+  strategy:
+    type: "Recreate"
+  appPorts:
+    - name: web
+      port: 5000
+  resources:
+    limits:
+      cpu: 400m
+      memory: 512Mi
+    requests:
+      cpu: 350m
+      memory: 512Mi
+
+  envs:
+    SOME_ENVS_HERE: "something_here"
+
+  vaultSecretEnvs:
+    - SOME_SECRET_ENVS_EXAMPLE
+
+ingress:
+  isGrpc: false
+  isPublic: true
+
+  extendedRules:
+    - path: "/"
+      backendPort: 5000
+
+Если нет, то создаем отдельные deployment, service, ingress манифесты:
+deplyment:
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: flask-app
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: flask-app
+  template:
+    metadata:
+      labels:
+        app: flask-app
+    spec:
+      containers:
+      - name: flask-container
+        image: artifact_storage_here/flask-app:latest
+        ports:
+        - containerPort: 5000
+
+service:
+apiVersion: v1
+kind: Service
+metadata:
+  name: flask-service
+spec:
+  selector:
+    app: flask-app
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 5000
+  type: ClusterIP
+
+ingress:
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: flask-ingress
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+spec:
+  rules:
+  - host: flask.local
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: flask-service
+            port:
+              number: 80
+
+3. Пушим код, мб настроен ci/cd на сохранение образа / Пушим образ в хранилище артефактов:
+
+docker build -t artifact_storage_here/flask-app:latest .
+docker push artifact_storage_here/flask-app:latest
+
+4. Применяем манифесты, если не настроен ci/cd:
+
+kubectl apply -f deployment.yaml
+kubectl apply -f service.yaml
+kubectl apply -f ingress.yaml
+
+5. Проверяем запуск подов через ui или командную строку:
+
+kubectl get pods
+kubectl get svc
+kubectl get ingress
+
+6. Заходим в приложение по урлу
